@@ -75,9 +75,10 @@ class Twig:
         self.bot = bot
 
     def make_metre(self, msg, conditions=[lambda x: True], keyboard=None):
+        n = len(self) if len(self) > 0 else len(self) + 1
         if msg.content_type == 'text':
-            self.conditions[len(self)] = conditions
-            self.signals[len(self) - 1] = {0: ({'chat_id': msg.chat.id,
+            self.conditions[n - 1] = conditions
+            self.signals[n - 1] = {0: ({'chat_id': msg.chat.id,
                                         'text': msg.text,
                                         'parse_mode': None,
                                         'entities': None,
