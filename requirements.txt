@@ -1,0 +1,7 @@
+cryptography 40.0.2
+pyTelegramBotAPI 4.11.0
+dill 0.3.6
+os
+shutil
+SQLAlchemy 2.0.5.post1
+SQLAlchemy-serializer 1.4.1
