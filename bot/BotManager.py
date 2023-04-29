@@ -9,7 +9,7 @@ import telebot
 import os
 import shutil
 
-TOKEN = '6171056025:AAE6O5wWoND-VRgROyRCaRjQXI7y_IJgSAg'
+TOKEN = 'TOKEN'
 bot = telebot.TeleBot(TOKEN)
 bot.set_my_commands([
     telebot.types.BotCommand("/start", "Перезапуск бота"),
