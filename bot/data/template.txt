@@ -7,6 +7,9 @@ with open([i for i in listdir() if '.txt' in i][0], 'rb') as f:
     tree = dill.loads(f.read())
 bot = telebot.TeleBot('{x}')
 
+for i in tree.twigs:
+    tree[i].set_bot(bot)
+
 
 @bot.message_handler(commands=['start'])
 def start(inf):
