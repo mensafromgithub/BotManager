@@ -74,10 +74,12 @@ class Twig:
     def set_bot(self, bot):
         self.bot = bot
 
-    def make_metre(self, msg, conditions=[lambda x: True], keyboard=None):
+    def make_metre(self, msg, condition=lambda x: True, keyboard=None):
         n = len(self) if len(self) > 0 else len(self) + 1
+        if type(condition) != type(lambda: True):
+            return False
         if msg.content_type == 'text':
-            self.conditions[n - 1] = conditions
+            self.conditions[n - 1] = {0: condition}
             self.signals[n - 1] = {0: ({'chat_id': msg.chat.id,
                                         'text': msg.text,
                                         'parse_mode': None,
@@ -90,11 +92,15 @@ class Twig:
                                         'reply_markup': keyboard,
                                         'timeout': None,
                                         'message_thread_id': None}, 'text')}
-            self.signals[len(self)] = lambda x: x
+                self.signals[len(self)] = lambda x: x
+            return True
+        return False
 
-    def replace_metre(self, msg, ind, conditions=[lambda x: True], keyboard=None):
+    def replace_metre(self, msg, ind, condition=lambda x: True, keyboard=None):
+        if type(condition) != type(lambda: True):
+            return False
         if msg.content_type == 'text':
-            self.conditions[ind] = conditions
+            self.conditions[ind] = {0: condition}
             self.signals[ind] = {0: ({'chat_id': msg.chat.id,
                                             'text': msg.text,
                                             'parse_mode': None,
@@ -107,22 +113,110 @@ class Twig:
                                             'reply_markup': keyboard,
                                             'timeout': None,
                                             'message_thread_id': None}, 'text')}
+            return True
+        return False
+
+    def switch_metre(self, switchable, switched):
+        self.conditions[switchable], self.conditions[switched] = self.conditions[switched], self.conditions[switchable]
+        self.signals[switchable], self.signals[switched] = self.signals[switched], self.signals[switchable]
+
+    def switch_metre_without_conds(self, switchable, switched):
+        if len(self[switchable]) == len(self[switched]):
+            self.signals[switchable], self.signals[switched] = self.signals[switched], self.signals[switchable]
+            return True
+        return False
+
+    def del_conditions(self, ind):
+        self.conditions[ind] = dict([(i, lambda x: True) for i in self.signals[ind]])
+
+    def set_conditions(self, ind, conditions):
+        if not len(conditions) != len(self[ind]):
+            return False
+        if not all([type(i) == type(lambda: True) for i in conditions]):
+            return False
+        self.conditions[ind] = dict([(i, v) for i, v in enumerate(conditions)])
+        return True
+
+    def set_condition(self, ind, n, condition):
+        if type(condition) != type(lambda: True):
+            return False
+        if n not in range(len(self[ind])):
+            return False
+        if not self.conditions[ind][0]('-300'):
+            self[ind][n] = condition
+            return True
+        return False
+
+    def switch_conditions_without_metres(self, switchable, switched):
+        if len(self[switchable]) == len(self[switched]):
+            self.conditions[switchable], self.conditions[switched] = self.conditions[switched], self.conditions[switchable]
+            return True
+        return False
+
+
+    def switch_conditions_without_leafs(self, ind, switchable, switched):
+        self.conditions[ind][switchable], self.conditions[ind][switched] = self.conditions[ind][switched], self.conditions[ind][switchable]
+
+    def replace_leaf(self, msg, ind, n, condition=lambda x: True, keyboard=None):
+        if type(condition) != type(lambda: True):
+            return False
+        if msg.content_type == 'text':
+            self.conditions[ind][n] = condition
+            self.signals[ind][n] = ({'chat_id': msg.chat.id,
+                                        'text': msg.text,
+                                        'parse_mode': None,
+                                        'entities': None,
+                                        'disable_web_page_preview': None,
+                                        'disable_notification': None,
+                                        'protect_content': None,
+                                        'reply_to_message_id': None,
+                                        'allow_sending_without_reply': None,
+                                        'reply_markup': keyboard,
+                                        'timeout': None,
+                                        'message_thread_id': None}, 'text')
+            return True
+        return False
+
+    def switch_leaf(self, ind, switchable, switched):
+        self.conditions[ind][switchable], self.conditions[ind][switched] = self.conditions[ind][switched], self.conditions[ind][switchable]
+        self.signals[ind][switchable], self.signals[ind][switched] = self.signals[ind][switched], self.signals[ind][switchable]
+
+    def switch_leaf_without_conds(self, ind, switchable, switched):
+        self.signals[ind][switchable], self.signals[ind][switched] = self.signals[ind][switched], self.signals[ind][switchable]
     
-    def add_metre(self, twig, ind):
+    def add_leaf(self, twig, ind, condition):
             n = len(self[ind])
             print(twig)
             print(n)
             print(ind)
-            self.signals[ind][n] = twig
+            if type(condition) != type(lambda: True):
+                return False
+            if isinstance(twig, Twig):
+                if not self.conditions[ind][0]('-300'):
+                    if not condition('-300'):
+                        self.conditions[ind][len(self.conditions[ind])] = condition
+                        self.signals[ind][n] = twig
+                    return False
+                else:
+                    self.conditions[ind][len(self.conditions[ind])] = lambda x: True
+                    self.signals[ind][n] = twig
+                return True
+            return False
         
     def del_metre(self, ind):
         k = list(self.signals.keys())
+        kc = list(self.conditions.keys())
         for i in range(ind, len(self) - 1):
             self.signals[k[i]] =  self[k[i + 1]]
+            self.conditions[kc[i]] =  self.conditions[kc[i + 1]]
         del self.signals[k[-1]]
+        del self.conditions[kc[-1]]
 
     def del_leaf(self, ind, n):
         k = list(self[ind].keys())
+        kc = list(self.conditions[ind].keys())
         for i in range(ind, len(self) - 1):
             self[ind][k[i]] =  self[ind][k[i + 1]]
+            self.conditions[ind][kc[i]] =  self.conditions[ind][kc[i + 1]]
         del self[ind][k[-1]]
+        del self.conditions[ind][kc[-1]]
