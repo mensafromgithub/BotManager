@@ -10,7 +10,6 @@ bot = telebot.TeleBot('{x}')
 for i in tree.twigs:
     tree[i].set_bot(bot)
 
-
 @bot.message_handler(commands=['start'])
 def start(inf):
     tree[0](ind=0)
