@@ -92,7 +92,7 @@ class Twig:
                                         'reply_markup': keyboard,
                                         'timeout': None,
                                         'message_thread_id': None}, 'text')}
-                self.signals[len(self)] = lambda x: x
+            self.signals[len(self)] = lambda x: x
             return True
         return False
 
