@@ -20,7 +20,7 @@ class Tree:
         self.uof[0] = user
         if self.uof[1]:
             for i in len(self):
-                self.twigs[i].user = user
+                self.twigs[i].set_user(user)
 
     def __len__(self):
         return len(self.twigs)
@@ -40,7 +40,8 @@ class Twig:
         self.signals = dict()
         self.name = name
         self.bot = bot
-        self.callback_handler = []
+        self.user = user
+        self.callback_handlers = {}
         self.conditions = {}
 
     def __getitem__(self, ind):
@@ -66,7 +67,7 @@ class Twig:
                             msg = self.bot.send_message(*sig[n][0].values())
                             self.bot.register_next_step_handler(msg, self, ind=ind + 1)
                     else:
-                        msg = self.bot.send_message(sig[n]['chat_id'], 'Неверный ввод')
+                        msg = self.bot.send_message(sig[0]['chat_id'], 'Неверный ввод')
                         self.bot.register_next_step_handler(msg, self, ind=ind)
         except:
             pass
@@ -74,13 +75,22 @@ class Twig:
     def set_bot(self, bot):
         self.bot = bot
 
-    def make_metre(self, msg, condition=lambda x: True, keyboard=None):
+    def set_user(self, user):
+        if user.isdigi():
+            self.user = user
+            for i in self.signals:
+                for j in self.signals[i]:
+                    self.signals[i][j]['chat_id'] = self.user
+            return True
+        return False
+
+    def make_metre(self, msg, condition=lambda x: True, keyboard=[None]):
         n = len(self) if len(self) > 0 else len(self) + 1
         if type(condition) != type(lambda: True):
             return False
         if msg.content_type == 'text':
             self.conditions[n - 1] = {0: condition}
-            self.signals[n - 1] = {0: ({'chat_id': msg.chat.id,
+            self.signals[n - 1] = {0: ({'chat_id': None,
                                         'text': msg.text,
                                         'parse_mode': None,
                                         'entities': None,
@@ -103,7 +113,7 @@ class Twig:
             return False
         if msg.content_type == 'text':
             self.conditions[ind] = {0: condition}
-            self.signals[ind] = {0: ({'chat_id': msg.chat.id,
+            self.signals[ind] = {0: ({'chat_id': None,
                                             'text': msg.text,
                                             'parse_mode': None,
                                             'entities': None,
@@ -135,7 +145,7 @@ class Twig:
 
     def del_conditions(self, ind):
         if ind not in range(len(self)):
-            return False
+            return Falseu
         self.conditions[ind] = dict([(i, lambda x: True) for i in self.signals[ind]])
         return True
 
