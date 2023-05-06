@@ -116,6 +116,8 @@ class Twig:
             return False
         if (not isinstance(cont, Twig)) and (not isinstance(cont, Leaf)):
                 return False
+        if not ((keyboard != None) == (isinstance(keyboard, InlineKeyboardMarkup) or isinstance(keyboard, ReplyKeyboardMarkup))):
+            return False
         if type(condition) != type(lambda: True):
             return False
         self.conditions[ind] = {0: condition}
