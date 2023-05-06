@@ -109,6 +109,11 @@ class Twig:
         self.conditions[n - 1] = {0: condition}
         self.signals[n - 1] = {0: cont}
         self.signals[len(self)] = lambda x: x
+        self.callback_handlers[n - 1] = {0: {}}
+        if keyboard != None:
+            cd = [f'{n}{i[0].callback_data}' for i in keyboard.keyboard]
+            for i, value in enumerate(keyboard.keyboard):
+                self.callback_handlers[n - 1][0][i] = self.bot.callback_query_handler(func=lambda x: x == value[0].callback_data)(lambda: self(data=str(value[0].callback_data), ind=n))
         return True
 
     def replace_metre(self, cont, ind, condition=lambda x: True, keyboard=None):
@@ -122,6 +127,11 @@ class Twig:
             return False
         self.conditions[ind] = {0: condition}
         self.signals[ind] = {0: cont}
+        self.callback_handlers[ind] = {0: {}}
+        if keyboard != None:
+            cd = [f'{n}{i[0].callback_data}' for i in keyboard.keyboard]
+            for i, value in enumerate(keyboard.keyboard):
+                self.callback_handlers[n - 1][0][i] = self.bot.callback_query_handler(func=lambda x: x == value[0].callback_data)(lambda: self(data=str(value[0].callback_data), ind=n))
         return True
 
     def switch_metre(self, switchable, switched):
@@ -207,7 +217,7 @@ class Twig:
         self.signals[ind][switchable], self.signals[ind][switched] = self.signals[ind][switched], self.signals[ind][switchable]
         return True
     
-    def add_leaf(self, cont, condition,  ind):
+    def add_leaf(self, cont, condition,  ind, keyboard=None):
             if ind not in range(len(self)):
              return False
             if (not isinstance(cont, Twig)) and (not isinstance(cont, Leaf)):
@@ -215,6 +225,11 @@ class Twig:
             n = len(self[ind])
             self.conditions[ind][n] = condition
             self.signals[ind][n] = cont
+            self.callback_handlers[ind][n] = {}
+            if keyboard != None:
+                cd = [f'{n}{i[0].callback_data}' for i in keyboard.keyboard]
+                for i, value in enumerate(keyboard.keyboard):
+                    self.callback_handlers[ind][n][i] = self.bot.callback_query_handler(func=lambda x: x == value[0].callback_data)(lambda: self(data=str(value[0].callback_data), ind=n))
             return True
 
     def del_metre(self, ind):
